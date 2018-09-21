@@ -31,8 +31,6 @@ import com.example.maheshpujala.dummy.model.OrderEntity;
 import com.example.maheshpujala.dummy.network.RequestModel;
 import com.example.maheshpujala.dummy.network.ResponseModel;
 import com.example.maheshpujala.dummy.network.ServerRequest;
-import com.github.aakira.expandablelayout.ExpandableLinearLayout;
-import com.github.aakira.expandablelayout.ExpandableRelativeLayout;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
