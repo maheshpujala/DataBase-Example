@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Dummy</string>
+    <string name="url_one"><![CDATA[http://capilead.com/APIcapilead/apicallall.php?f=orderdetails&clientid=1&type=0]]></string>
+    <string name="error_unknown">Error Occured.Try Again</string>
+</resources>
