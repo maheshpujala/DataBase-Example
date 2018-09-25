@@ -39,7 +39,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.List;
-import java.util.Objects;
 
 
 /**
@@ -78,6 +77,7 @@ public class OrderFragment extends Fragment {
     }
 
     private void setRecyclerView(List<OrderEntity> allOrders) {
+        if(allOrders.size() > 0){
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(new OrdersAdapter(allOrders,recyclerView));
@@ -105,6 +105,9 @@ public class OrderFragment extends Fragment {
 
             }
         });
+        }else{
+            Snackbar.make(rootView,getString(R.string.connect_to_internet),Snackbar.LENGTH_LONG).show();
+        }
     }
 
     private void getOrdersList() {
@@ -116,7 +119,7 @@ public class OrderFragment extends Fragment {
     public void ordersFetched(ResponseModel responseModel) {
         //Write code to perform action after event is received.
         if(responseModel.getRequestCallBack() == URL_ONE){
-            if(responseModel.getStatusCode() == 200){
+            if(responseModel.getStatusCode() == 200 || responseModel.getStatusCode() == 555){
                 PopulateDbAsync task = new PopulateDbAsync(OrderFragment.this,responseModel.getPayload());
                 task.execute();
             }else{

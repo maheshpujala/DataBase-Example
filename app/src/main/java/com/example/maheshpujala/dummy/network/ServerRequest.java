@@ -165,7 +165,12 @@ public class ServerRequest {
                     DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
             App.getInstance(activity).addToRequestQueue(jsObjRequest,requestModel.getRequestType());
         }else{
-            App.showDialog(activity);
+            serverResponse.setRequestCallBack(requestCallBack);
+            serverResponse.setPayload("[]");
+            serverResponse.setStatusCode(555);
+            serverResponse.setSuccess(false);
+            EventBus.getDefault().post(serverResponse);
+//            App.showDialog(activity);
         }
 
     }
