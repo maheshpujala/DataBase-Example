@@ -1,5 +1,7 @@
 package com.example.maheshpujala.dummy.fragment;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -31,6 +33,15 @@ import com.example.maheshpujala.dummy.model.OrderEntity;
 import com.example.maheshpujala.dummy.network.RequestModel;
 import com.example.maheshpujala.dummy.network.ResponseModel;
 import com.example.maheshpujala.dummy.network.ServerRequest;
+import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.facebook.login.LoginManager;
+import com.facebook.login.LoginResult;
+import com.facebook.login.widget.LoginButton;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -38,17 +49,23 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Callable;
+
+import static com.facebook.FacebookSdk.getApplicationContext;
 
 
 /**
  * Created by maheshpujala on 19,July,2018
  */
 public class OrderFragment extends Fragment {
+    private static final String EMAIL = "email";
 
     View rootView;
     private int URL_ONE = 1;
     RecyclerView recyclerView;
+    CallbackManager callbackManager;
     public OrderFragment() {
     }
 
@@ -60,12 +77,15 @@ public class OrderFragment extends Fragment {
 
     });
 
+
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         EventBus.getDefault().register(this);
         setHasOptionsMenu(true);
         getOrdersList();
+        callbackManager = CallbackManager.Factory.create();
         return inflater.inflate(R.layout.fragment_home, container, false);
     }
 
@@ -74,6 +94,93 @@ public class OrderFragment extends Fragment {
         rootView = view.findViewById(android.R.id.content);
         recyclerView = view.findViewById(R.id.recycler_view_orders);
 
+
+        LoginButton loginButton = (LoginButton) view.findViewById(R.id.login_button);
+        loginButton.setReadPermissions(Arrays.asList(EMAIL));
+        // If you are using in a fragment, call loginButton.setFragment(this);
+        loginButton.setFragment(this);
+        // Callback registration
+        loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                // App code
+                Log.e("onSuccess: ", "===="+loginResult.getAccessToken());
+                handleSignInResult(new Callable<Void>() {
+                    @Override
+                    public Void call() throws Exception {
+                        LoginManager.getInstance().logOut();
+                        return null;
+                    }
+                });
+            }
+
+            @Override
+            public void onCancel() {
+                // App code
+                Log.e("onCancel: ", "==");
+
+            }
+
+            @Override
+            public void onError(FacebookException exception) {
+                // App code
+                Log.e("onError: ", "=="+exception);
+            }
+        });
+
+    }
+
+    private void handleSignInResult(Callable<Void> logout) {
+        if (logout == null) {
+            /* Login error */
+            Toast.makeText(getApplicationContext(), "LOGIN EROR", Toast.LENGTH_SHORT).show();
+        } else {
+
+
+            /* Login success */
+            /*
+       To get the facebook user's own profile information via  creating a new request.
+       When the request is completed, a callback is called to handle the success condition.
+    */
+            GraphRequest data_request = GraphRequest.newMeRequest(
+                    AccessToken.getCurrentAccessToken(),
+                    new GraphRequest.GraphJSONObjectCallback() {
+                        @Override
+                        public void onCompleted(
+                                JSONObject json_object,GraphResponse response) {
+                            Log.e("onCompleted",""+response+json_object);
+                            if (response != null) {
+                                try {
+                                    String mFbid = json_object.getString("id");
+                                    String mFullname = json_object.getString("name");
+                                     String mEmail = json_object.getString("email");
+                                    Log.e("onCompleted facebook","mFbid====="+mFbid);
+                                    Log.e("onCompleted facebook","mFullname====="+mFullname);
+                                    Log.e("onCompleted facebook","mEmail====="+mEmail);
+
+
+                                } catch (JSONException e) {
+                                    e.getMessage();
+                                }
+
+                            }
+                            else{
+                                Log.e("Response","null");
+                            }
+                        }
+                    });
+            Bundle permission_param = new Bundle();
+            permission_param.putString("fields", "id,name,email,picture.width(120).height(120)");
+            data_request.setParameters(permission_param);
+            data_request.executeAsync();
+
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        callbackManager.onActivityResult(requestCode, resultCode, data);
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     private void setRecyclerView(List<OrderEntity> allOrders) {
